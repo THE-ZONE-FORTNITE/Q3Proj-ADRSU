@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+   
+</head>
+<body>
+    <div class="container">
+        <div class="game-section">
+            <h1>Turn-Based Battle Game <br> THE ZONE</h1>
+            <!-- Elements to display game information -->
+            <p id="choice"></p>
+            <p id="coin"></p>
+            <select id="coinChoice">
+                <option value="Heads">Heads</option>
+                <option value="Tails">Tails</option>
+            </select>
+            <div class="button-group">
+                <button onclick="turn()" id="startBattle">Start Battle</button>
+                <button onclick="setGame()" id="resetButton">Reset</button>
+            </div>
+            <div class="button-group">
+                <button id="attack" onclick="playerAttack()" disabled> Attack Opponent</button>
+                <button id="defend" onclick="playerDefend()" disabled>Defend Opponent's Attack</button>
+            </div>
+            <div id="attackscroll">
+                <p id="DSCHC"></p>
+                <p id="OPPCHC"></p>
+
+                <p id="tEVEnt"></p>
+
+                <p id="plyaHp"></p>
+
+                <p id="opponentHP"></p>
+                
+                <p id="attackH" class="move-history"></p>
+                <p id="OPPMH" class="move-history"></p>
+            </div>
+        </div>
+        
+        <div class="image-section">
+            <img src="atk.jpg" id="actionImage" alt="Action Image">
+        </div>
+    </div>
+    
+    <script>
+        // Declare variables to store player and opponent health points, attack history, and opponent's move history
+        var playerHP = 100;
+        var opponentHP = 100;
+        var attackHistory = [];
+        var opponentMoveHistory = [];
+
+        // Function to reset the game
+        function setGame() {
+
+            // Disable attack and defend buttons, enable coin choice and start battle button
+
+            document.getElementById("attack").disabled = true;
+            document.getElementById("defend").disabled = true;
+            document.getElementById("coinChoice").disabled = false;
+            document.getElementById("startBattle").disabled = false;
+
+            // Clear game information and reset health points
+
+            document.getElementById("coin").innerHTML = "";
+            playerHP = 100;
+            opponentHP = 100;
+            document.getElementById("choice").innerHTML = "";
+            
+            document.getElementById("coin").innerHTML = "";
+            
+            document.getElementById("DSCHC").innerHTML = "";
+            
+            document.getElementById("OPPCHC").innerHTML = "";
+            
+            document.getElementById("turnEv").innerHTML = "";
+            
+            document.getElementById("plyaHp").innerHTML = "Player: " + playerHP;
+            
+            document.getElementById("opponentHP").innerHTML = "Opponent: " + opponentHP;
+           
+            document.getElementById("attackH").innerHTML = "";
+            
+            document.getElementById("OPPMH").innerHTML = "";
+            attackHistory = [];
+            opponentMoveHistory = [];
+        }
+
+        // Function to check if any player has won
+
+        function checkHP(playerHP, opponentHP) {
+
+            // If player's HP is less than or equal to zero, player loses
+
+            if (playerHP <= 0) {
+                playerHP = 0;
+                document.getElementById("plyaHp").innerHTML = "Player: " + playerHP;
+                document.getElementById("tEVEnt").innerHTML = "Opponent won!";
+                document.getElementById("attack").disabled = true;
+                document.getElementById("defend").disabled = true;
+                document.getElementById("coinChoice").disabled = true;
+            }
+
+            // If opponent's HP is less than or equal to zero, player wins
+
+            if (opponentHP <= 0) {
+                opponentHP = 0;
+                document.getElementById("opponentHP").innerHTML = "Opponent: " + opponentHP;
+                document.getElementById("tEVEnt").innerHTML = "Player won!";
+                document.getElementById("attack").disabled = true;
+                document.getElementById("defend").disabled = true;
+                document.getElementById("coinChoice").disabled = true;
+            }
+            // If both player and opponent have zero or less HP, it's a tie
+            if (opponentHP <= 0 && playerHP <= 0) {
+                playerHP = 0;
+                document.getElementById("plyaHp").innerHTML = "Player: " + playerHP;
+                opponentHP = 0;
+                document.getElementById("opponentHP").innerHTML = "Opponent: " + opponentHP;
+                document.getElementById("tEVEnt").innerHTML = "No one won!";
+                document.getElementById("attack").disabled = true;
+                document.getElementById("defend").disabled = true;
+                document.getElementById("coinChoice").disabled = true;
+            }
+        }
+
+        // Function to simulate coin toss
+
+        function Cointoss() {
+            randomizer = Math.floor(Math.random() * 10);
+            if (randomizer % 2 == 0) {
+                document.getElementById("coin").innerHTML = "Coin is Heads";
+                flipacoin = "Heads";
+                return flipacoin;
+            } else {
+                document.getElementById("coin").innerHTML = "Coin is Tails";
+                flipacoin = "Tails";
+                return flipacoin;
+            }
+        }
+
+        // Function to start the battle after the coin toss
+        function turn() {
+            var selectedOption = document.getElementById("coinChoice").value;
+            document.getElementById("choice").innerHTML = "You chose " + selectedOption + "!";
+            document.getElementById("startBattle").disabled = true;
+
+            var flipacoin = Cointoss();
+            if (flipacoin === selectedOption) {
+                document.getElementById("attack").disabled = false;
+                document.getElementById("defend").disabled = true;
+            } else {
+                enableAction();
+                damage = calculateDmg();
+                playerHP = playerHP - damage;
+                
+                document.getElementById("plyaHp").innerText = "Player: " + playerHP;
+                document.getElementById("tEVEnt").innerHTML = "They inflict " + damage + " damage!";
+                // Make the opponent's move after the player's move
+                opponentMove();
+            }
+        }
+
+        // Function to enable attack and defend buttons
+
+        function enableAction() {
+            document.getElementById("attack").disabled = false;
+            document.getElementById("defend").disabled = false;
+        }
+
+        // Function to calculate random damage between 1 and 5
+        function calculateDmg() {
+            var damage = Math.floor(Math.random() * 5) + 1; // Ensure damage is not zero
+            return damage;
+        }
+
+        // Function for the opponent to randomly choose between attack and defend
+
+        function opponentAction() {
+            var action = Math.floor(Math.random() * 2); // Randomly choose between 0 and 1 for attack or defend
+            return action;
+        }
+
+        // Function for the opponent to make a move
+
+        function opponentMove() {
+         var action = opponentAction();
+            if (action == 0) {
+
+        // Opponent attacks
+
+        var damage = calculateDmg();
+        playerHP = Math.max(0, playerHP - damage); // Ensure playerHP doesn't go below zero
+        document.getElementById("plyaHp").innerText = "Player: " + playerHP;
+        document.getElementById("tEVEnt").innerText = "Opponent attacks and inflicts " + damage + " damage!";
+    } 
+    else 
+        {
+
+        // Opponent defends
+
+        document.getElementById("tEVEnt").innerText = "Opponent chooses to defend!";
+        }
+    // Record opponent's move history
+        opponentMoveHistory.push("Opponent's move: " + (action === 0 ? "Attack" : "Defend"));
+        document.getElementById("OPPMH").innerHTML = opponentMoveHistory.join("<br>");
+        checkHP(playerHP, opponentHP);
+    // Update action image
+        updateActionImage("Attack", action === 0 ? "Defend" : "Defend",);
+}
+
+
+        // Function for player to attack opponent
+        function playerAttack() {
+            enableAction();
+
+            document.getElementById("DSCHC").innerHTML = "You Attacked!";
+            damage = calculateDmg();
+            opponentHP = Math.max(0, opponentHP - damage); // Ensure opponentHP doesn't go below zero
+            document.getElementById("opponentHP").innerText = "Opponent: " + opponentHP;
+            document.getElementById("tEVEnt").innerText = "You inflict " + damage + " damage!";
+            checkHP(playerHP, opponentHP);
+
+            // Make the opponent's move after the player's move
+
+            opponentMove();
+
+            // Record player's move history
+
+            attackHistory.push("You attacked and inflicted " + damage + " damage.");
+            document.getElementById("attackH").innerHTML = attackHistory.join("<br>");
+
+            // Update action image
+
+            updateActionImage("Attack", "Attack");
+        }
+
+        // Function for player to defend against opponent's attack
+
+        function playerDefend() {
+            enableAction();
+
+            document.getElementById("DSCHC").innerHTML = "You Defended!";
+            var opponentMove = opponentAction();
+            if (opponentMove === 0) {
+               
+                damage = calculateDmg();
+                var defdmg = Math.floor(Math.random () * 3 ) + 1 
+                damage = Math.max(1, damage - 3); // Ensure damage is never less than 1
+                playerHP = Math.max(0, playerHP - damage); // Ensure playerHP doesn't go below zero
+                document.getElementById("plyaHp").innerText = "Player: " + playerHP;
+                document.getElementById("tEVEnt").innerText = "You tried to defend the opponent's attack. They inflict " + damage + " damage!";
+            } else {
+                document.getElementById("OPPCHC").innerHTML = "The Opponent chose to defend!";
+                document.getElementById("tEVEnt").innerText = "You both defended!";
+            }
+            checkHP(playerHP, opponentHP);
+            // Record player's move history
+            attackHistory.push("You defended against the opponent's attack.");
+            document.getElementById("attackH").innerHTML = attackHistory.join("<br>");
+            // Update action image
+            updateActionImage("Defend", "Attack");
+        }
+
+        // Adding Event Listener for the Reset Button
+        document.getElementById("resetButton").addEventListener("click", setGame);
+
+        // Function to update action image based on choices
+        function updateActionImage(playerAttack, opponentMove) {
+    var actionImage = document.getElementById("actionImage");
+
+    if (playerAttack === "Attack" && opponentMove === "Defend") {
+        actionImage.src = "atk.JPG"; // Replace "attackdefend.JPG" with your image path
+    } else if (playerAttack === "Defend" && opponentMove === "Attack") {
+        actionImage.src = "defend2.jpg"; // Replace "defend2.jpg" with your image path
+    } else if (playerAttack === "Defend" && opponentMove === "Defend") {
+        actionImage.src = "Bothdef.JPG"; // Replace "Bothdef.JPG" with your image path
+    } else if (playerAttack === "Attack" && opponentMove === "Attack") {
+        actionImage.src = "bothatk.JPG"; // Replace "bothatk.JPG" with your image path
+    } else {
+        // Set a default image path or hide the image if no action is performed
+        console.log("No action image defined for playerChoice: " + playerChoice + " and opponentChoice: " + opponentChoice);
+        actionImage.src = ""; // You can set a default image path here or leave it empty to hide the image
+    }
+    actionImage.style.display = "block"; // Show the image
+
+
+        }
+    </script>
+</body>
+</html>
+
